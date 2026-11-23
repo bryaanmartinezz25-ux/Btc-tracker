@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080e1a"><meta name="description" content="Bitcoin trade flow and Kalshi 15-minute market monitor. Live read-only dashboard.">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="./icon.svg"><link rel="stylesheet" href="./styles.css">
+<title>BTC Pulse — Kalshi 15M Live · Diagnostics</title>
+</head>
+<body>
+<main class="shell">
+  <header class="topbar">
+    <div class="branding"><div class="brand-icon">₿</div><div><div class="brand">BTC <b>PULSE</b><span class="brand-suffix"> / 15M</span></div><p class="tiny">Kalshi market + Coinbase BTC/USD flow</p></div></div>
+    <div class="connection-row"><span class="status-pill" id="coinbaseStatus"><i></i> BTC connecting</span><span class="status-pill" id="kalshiStatus"><i></i> Kalshi connecting</span></div>
+  </header>
+  <div class="warning-banner" id="overallWarning" role="status">Connecting to Coinbase and Kalshi feeds. No live values are shown until confirmed.</div>
+
+  <section class="hero-grid" aria-label="Current signal and price">
+    <article class="card signal-card">
+      <div class="card-heading"><span class="overline">15-MINUTE SIGNAL</span><span class="pill pill-muted" id="signalMode">AUTO · REVERSIBLE</span></div>
+      <div class="direction waiting" id="direction" aria-live="polite">WAITING</div>
+      <p class="signal-explainer" id="signalDesc">Collecting a continuous 2-minute sample and current Kalshi quotes.</p>
+      <div class="readiness-panel" id="readinessPanel" role="status" aria-live="polite">Waiting for a full trade sample. Live feed connection alone does not indicate signal readiness.</div>
+      <div class="signal-steps">
+        <div><span class="step-indicator" id="checkOdds">○</span> Kalshi consensus</div>
+        <div><span class="step-indicator" id="checkFlow">○</span> 2m flow</div>
+        <div><span class="step-indicator" id="checkPrice">○</span> Momentum</div>
+      </div>
+      <div class="meta-row"><div><span class="overline">SIGNAL STATUS</span><strong id="signalType">NO LOCK</strong></div><div><span class="overline">LOCK TIME</span><strong id="lockTime">—</strong></div><div><span class="overline">MARKET ID</span><strong id="marketShort">—</strong></div></div>
+    </article>
+    <article class="card time-card">
+      <div class="card-heading"><span class="overline">CURRENT KALSHI WINDOW</span><span class="pill pill-gold" id="windowLabel">15 MIN</span></div>
+      <div class="main-price-row"><div><div class="countdown" id="countdown">--:--</div><span class="tiny">until window closes</span></div><div class="price-area"><div class="price-main" id="btcPrice">—</div><div class="tiny">Coinbase spot price</div></div></div>
+      <div class="progress-track"><div class="progress-elapsed" id="timeProgress"></div></div>
+      <div class="split-time"><span>Open <b id="startTime">—</b></span><span>Close <b id="endTime">—</b></span></div>
+      <div class="mini-stats"><div><span class="overline">2M BTC MOVE</span><strong id="priceMove">—</strong></div><div><span class="overline">KALSHI TARGET (BRTI)</span><strong id="strike">—</strong></div><div><span class="overline">VS TARGET*</span><strong id="distance">—</strong></div></div>
+      <p class="tiny note">*Coinbase spot vs Kalshi reference, for context only. Kalshi settles using CF Benchmarks BRTI averages, not Coinbase's last trade.</p>
+    </article>
+  </section>
+
+  <section class="data-grid">
+    <article class="card">
+      <div class="card-heading"><div><h2>Kalshi · UP / DOWN</h2><div class="tiny">15m market-implied percentages</div></div><span class="pill" id="quoteAge">No quote</span></div>
+      <div class="odds-grid"><div class="odds-cell up-bg"><span class="overline">▲ UP / YES</span><strong class="number up" id="kalshiUp">—%</strong><span class="tiny">Quoted midpoint</span><div class="single-bar"><i class="up-fill" id="upFill"></i></div></div><div class="odds-cell down-bg"><span class="overline">▼ DOWN / NO</span><strong class="number down" id="kalshiDown">—%</strong><span class="tiny">Quoted midpoint</span><div class="single-bar"><i class="down-fill" id="downFill"></i></div></div></div>
+      <div class="data-row"><span>YES bid / ask</span><b id="yesSpread">—</b></div><div class="data-row"><span>NO bid / ask</span><b id="noSpread">—</b></div><div class="data-row"><span>Quote spread</span><b id="marketSpread">—</b></div><div class="data-row"><span>Market ticker</span><a href="https://kalshi.com/markets" target="_blank" rel="noopener" id="marketLink">Open Kalshi ↗</a></div>
+      <p class="info-text" id="kalshiNotice">Loading public Kalshi market quotes…</p>
+      <p class="tiny note">These are prices converted to percentages—not the share of Kalshi users voting on either side. Bid/ask midpoint estimates are not calibrated forecasts.</p>
+    </article>
+    <article class="card">
+      <div class="card-heading"><div><h2>Bitcoin · Trade pressure</h2><div class="tiny">Actual Coinbase aggressive trade fills</div></div><select id="flowWindow" aria-label="Trade pressure period"><option value="30">30 seconds</option><option value="120" selected>Last 2 min</option><option value="300">Last 5 min</option></select></div>
+      <div class="odds-grid"><div class="odds-cell up-bg"><span class="overline">BUY VOLUME</span><strong class="number up" id="buyPct">—%</strong><span class="tiny" id="buyBtc">— BTC</span></div><div class="odds-cell down-bg"><span class="overline">SELL VOLUME</span><strong class="number down" id="sellPct">—%</strong><span class="tiny" id="sellBtc">— BTC</span></div></div>
+      <div class="split-bar"><i class="up-fill" id="buyFill"></i><i class="down-fill" id="sellFill"></i></div>
+      <div class="data-row"><span>Net aggressive flow</span><b id="netBtc">—</b></div><div class="data-row"><span>Trade executions</span><b id="tradeCount">—</b></div><div class="data-row"><span>Data window coverage</span><b id="coverage">0 / 120 sec</b></div><div class="data-row"><span>2m flow bias</span><b id="flowBias">—</b></div>
+      <p class="info-text" id="coinbaseNotice">Warming up. A complete 2-minute window takes 2 minutes of continuous streaming after opening the app.</p>
+      <p class="tiny note">Exact exchange trade quantities, NOT unique people, unfilled orders, or all Bitcoin exchanges. A trade has both a buyer and seller; BUY means the buyer initiated the execution.</p>
+    </article>
+  </section>
+
+  <article class="card chart-card">
+    <div class="card-heading"><div><h2>Bitcoin price action</h2><p class="tiny">Coinbase 1-minute candles · EMA9 / EMA21 · 15m boundaries</p></div><div class="chart-legend"><span><i class="legend-ema9"></i> EMA9</span><span><i class="legend-ema21"></i> EMA21</span><span><i class="legend-marker"></i> Kalshi 15m</span></div></div>
+    <div class="chart-wrapper"><canvas id="priceChart" aria-label="Candlestick chart of Bitcoin with EMA and 15-minute markers" role="img"></canvas></div>
+    <div class="chart-footer"><span id="chartStatus">Loading historical candles…</span><span>Green/red dots show observed large BTC executions</span></div>
+  </article>
+
+  <section class="bottom-grid">
+    <article class="card tape-card">
+      <div class="card-heading"><div><h2>Large Bitcoin trades</h2><p class="tiny">Individual exchange executions · exact BTC size</p></div><div class="tape-controls"><label for="tradeThreshold">Min. BTC</label><select id="tradeThreshold"><option value="0.1">0.1</option><option value="0.5">0.5</option><option value="1" selected>1</option><option value="2">2</option><option value="5">5</option><option value="10">10</option><option value="20">20</option></select><button id="exportBtn" class="button">CSV ↓</button></div></div>
+      <div class="notice-trade" id="tradeNotice">Waiting for exchange trade executions…</div>
+      <div class="table-scroll"><table><thead><tr><th>TIME</th><th>AGGRESSOR</th><th>BTC FILLED</th><th>BTC PRICE</th><th>USD VALUE</th></tr></thead><tbody id="tradeTable"><tr><td colspan="5" class="empty-table">Live trades will appear here after connection.</td></tr></tbody></table></div>
+    </article>
+    <aside class="card tools-card">
+      <div class="card-heading"><h2>Signal intelligence</h2><span class="pill pill-muted">STRICT MODE</span></div>
+      <div class="checklist"><div><span>Kalshi quote</span><b id="healthKalshi">Waiting</b></div><div><span>Coinbase trade stream</span><b id="healthCoinbase">Connecting</b></div><div><span>Full 2m sample</span><b id="healthSample">Not ready</b></div><div><span>Price candles</span><b id="healthChart">Loading</b></div><div><span>Initial lock</span><b id="initialTiming">After first 2m</b></div><div><span>Reversal logic</span><b>Live until T−00:15</b></div></div>
+      <p class="small-explain">Initial lock after at least 2 minutes into the market (or final 2 minutes in strict timing mode): fresh quotes, a complete two-minute BTC trade sample, ≤8-point Kalshi spread, 60%+ market odds, 57%+ aggressive volume and price momentum must agree across 3 checks. <b>Reversible lock:</b> after a countertrend warning, the opposite side must hold 53%+ Kalshi midpoint, 63%+ taker volume and ≥0.035% opposing price movement for 3 checks. The last 15 seconds freeze the direction.</p>
+      <div class="settings"><label class="timing-label">Initial lock timing <select id="timingMode" aria-label="Initial lock timing"><option value="early" selected>After 2m of market (earlier)</option><option value="late">Final 2m only (stricter)</option></select></label><label class="toggle"><input type="checkbox" id="soundToggle"><span>Sound for large trades</span></label><label class="toggle"><input type="checkbox" id="persistToggle" checked><span>Keep locked signal on refresh</span></label><button class="button secondary" id="resetSignal">Clear saved signal</button></div>
+      <div class="previous"><span class="overline">RECENT SAVED SIGNALS</span><div id="historyList" class="history-list">None yet</div></div>
+    </aside>
+  </section>
+
+  <footer><div><b>BTC Pulse</b> · Read-only market monitor, no trading or account access. Data can be delayed or incomplete; Kalshi prices are not probabilities of individual users and do not guarantee settlement. The UP/DOWN lock is reversible with confirmed countertrend evidence. Its thresholds are illustrative, unvalidated heuristics — not a proven edge or a guarantee.</div><div class="footer-links"><a href="https://docs.kalshi.com" target="_blank" rel="noopener">Kalshi API</a><a href="https://docs.cdp.coinbase.com/exchange/websocket-feed/overview" target="_blank" rel="noopener">Coinbase feed</a></div></footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="./logic.js" defer></script><script src="./app.js" defer></script>
+</body></html>
